@@ -8,11 +8,12 @@
 
 ### Aperçu du Dashboard et des Tables
 
-_(Insérer les captures d'écran ici)_
-
-- **Dashboard Supabase :** [Capture_Dashboard.png]
-- **Table Profiles :** [Capture_Profiles.png]
-- **Table Tasks :** [Capture_Tasks.png]
+- **Dashboard Supabase :**
+![test RLS](screens/dashboard.png)
+- **Tables :**
+![test RLS](screens/supabase.png)
+- **Webhooks:**
+![test RLS](screens/webhook.png)
 
 ---
 
@@ -41,7 +42,7 @@ CREATE POLICY "members_read" ON project_members FOR SELECT
 ```
 Après ça, le test-rls passait. Mais Alice n'avait accès à aucune task
 
-![test RLS](test-rls.png)
+![test RLS](screens/test-rls.png)
 
 Cela était dû au fait qu'alice n'était pas membre dans le projet, après l'avoir ajouter au projet avec:
 
@@ -55,7 +56,7 @@ values (
 ````
 
 Elle avait accès à 3 tasks, incluant celle de Bob 
-![Passing test RLS](test-rls-2.png)
+![Passing test RLS](screens/test-rls-2.png)
 
 après avoir ajouter 
 ```sql AND (assigned_to = auth.uid())) ````
@@ -75,4 +76,4 @@ using ( ((project_id IN ( SELECT project_members.project_id
 
 Alice n'avait accès qu'à ses tasks.
 
-![Passing test RLS](passing-test-rls.png)
+![Passing test RLS](screens/passing-test-rls.png)
