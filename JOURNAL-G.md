@@ -10,6 +10,40 @@ DROP POLICY "members_read" ON project_members;
 CREATE POLICY "members_read" ON project_members FOR SELECT
   USING (user_id = auth.uid());
 ```
-Après ça, le test-rls passait 
+Après ça, le test-rls passait. Mais Alice n'avait accès à aucune task
 
-![Passing test RLS](test-rls.png)
+![test RLS](test-rls.png)
+
+Cela était dû au fait qu'alice n'était pas membre dans le projet, après l'avoir ajouter au projet avec:
+
+```sql
+insert into public.project_members (project_id, user_id, role) 
+values (
+  (select id from public.projects where name = 'Refonte API'), 
+  '14dce618-1b37-4b50-b6ba-aa7153426365'::uuid, 
+  'admin'
+);
+````
+
+Elle avait accès à 3 tasks, incluant celle de Bob 
+![Passing test RLS](test-rls-2.png)
+
+après avoir ajouter 
+```sql AND (assigned_to = auth.uid())) ````
+
+à 
+```sql
+alter policy "tasks_read"
+
+on "public"."tasks"
+
+to public
+
+using ( ((project_id IN ( SELECT project_members.project_id
+   FROM project_members
+  WHERE (project_members.user_id = auth.uid()))) AND (assigned_to = auth.uid()))
+);````
+
+Alice n'avait accès qu'à ses tasks.
+
+![Passing test RLS](passing-test-rls.png)
