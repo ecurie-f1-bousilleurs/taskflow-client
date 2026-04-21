@@ -22,6 +22,14 @@ export async function createTask(projectId, taskData) {
 	const {
 		data: { user },
 	} = await supabase.auth.getUser();
+	console.log("ID de l'utilisateur actuel (Bob) :", user.id);
+	const { data: membership } = await supabase
+		.from("project_members")
+		.select("*")
+		.eq("project_id", projectId)
+		.eq("user_id", user.id);
+
+	console.log("Appartenance au projet vue par Bob :", membership);
 	const { data, error } = await supabase
 		.from("tasks")
 		.insert({
@@ -31,7 +39,7 @@ export async function createTask(projectId, taskData) {
 			priority: taskData.priority ?? "medium",
 			assigned_to: taskData.assignedTo ?? null,
 			due_date: taskData.dueDate ?? null,
-			file_url: taskData.fileUrl ?? null, // URL Uploadthing
+			file_url: taskData.fileUrl ?? null,
 			file_name: taskData.fileName ?? null,
 			created_by: user.id,
 		})

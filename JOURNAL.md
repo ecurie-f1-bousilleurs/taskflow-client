@@ -72,8 +72,45 @@ to public
 using ( ((project_id IN ( SELECT project_members.project_id
    FROM project_members
   WHERE (project_members.user_id = auth.uid()))) AND (assigned_to = auth.uid()))
-);````
+);
+```
 
 Alice n'avait accès qu'à ses tasks.
 
 ![Passing test RLS](screens/passing-test-rls.png)
+
+# 3. Implémentation du temps réel (Realtime)
+
+Pour permettre la collaboration en temps réel sur la gestion des tâches, nous avons mis en place des abonnements via Supabase Realtime (`supabase.channel`).
+
+### Mise en place des écouteurs (`src/realtime.js`)
+Nous avons créé un module `realtime.js` exportant la fonction `subscribeToProject`. Cette fonction configure un canal Supabase propre à un projet donné et écoute :
+- Les changements sur la table `tasks` (INSERT, UPDATE, DELETE) liés au projet.
+- Les ajouts sur la table `comments` (INSERT).
+- La présence des utilisateurs connectés sur ce canal (Sync).
+
+### Écoute des événements - Alice (`src/alice-watch.js`)
+Ce script simule un utilisateur (Alice) qui se connecte, s'abonne au projet via `subscribeToProject`, et affiche en temps réel :
+- L'ajout d'une nouvelle tâche.
+- Les changements de statut des tâches.
+- L'ajout de commentaires.
+- Le nombre d'utilisateurs connectés simultanément.
+
+### Exécution d'actions - Bob (`src/bob-actions.js`)
+En parallèle, le script `bob-actions.js` a été créé pour simuler un collaborateur effectuant une série d'actions :
+1. Création d'une tâche (auto-assignée pour respecter nos règles RLS).
+2. Modification du statut de la tâche après un certain délai.
+3. Ajout d'un commentaire sur la tâche.
+
+Ainsi, si Alice écoute le canal pendant que Bob exécute ses actions, elle visualisera instantanément les événements reçus depuis la base de données.
+
+![Comments](screens/comments.png)
+
+![Tasks](screens/tasks.png)
+
+![Alice-watch](screens/alice-watch.png)
+
+![bob-action](screens/bob-action.png)
+
+
+
