@@ -1,19 +1,21 @@
-import { createUploadthing } from "uploadthing/express";
+// upload.js – client Uploadthing simplifié
+import { createUploadthing } from "uploadthing/server";
 
 const f = createUploadthing();
 
+// Définir les types de fichiers acceptés
 export const uploadRouter = {
-	// Define as many FileRoutes as you like, each with a unique routeSlug
-	imageUploader: f({
-		image: {
-			/**
-			 * For full list of options and defaults, see the File Route API reference
-			 * @see https://docs.uploadthing.com/file-routes#route-config
-			 */
-			maxFileSize: "4MB",
-			maxFileCount: 1,
-		},
-	}).onUploadComplete((data) => {
-		console.log("upload completed", data);
-	}),
+	taskAttachment: f({
+		image: { maxFileSize: "4MB", maxFileCount: 1 },
+		pdf: { maxFileSize: "8MB", maxFileCount: 1 },
+	})
+		.middleware(async ({ req }) => {
+			// Vérifier que l'user est connecté
+			const token = req.headers["authorization"]?.replace("Bearer ", "");
+			if (!token) throw new Error("Non authentifié");
+			return { token };
+		})
+		.onUploadComplete(async ({ metadata, file }) => {
+			return { url: file.url, name: file.name };
+		}),
 };
